@@ -17,3 +17,17 @@ img {
   margin: 20px 0;
   max-width: 200px;
 }
+
+table {
+  border-spacing: 0;
+}
+
+.cell {
+  width: 30px;
+  height: 30px;
+  border: 1px solid black;
+}
+
+.alive {
+  background-color: gray;
+}

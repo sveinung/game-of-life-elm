@@ -71,7 +71,7 @@ update msg model =
 
 htmlCell : Bool -> Html msg
 htmlCell alive =
-    td [ class (if alive then "alive" else "")] []
+    td [ class (if alive then "alive cell" else "cell")] []
 
 htmlRow : Row -> Html msg
 htmlRow row =
