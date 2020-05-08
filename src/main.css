@@ -18,6 +18,10 @@ img {
   max-width: 200px;
 }
 
+.app {
+  margin: 30px;
+}
+
 table {
   border-spacing: 0;
 }
