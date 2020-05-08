@@ -8,6 +8,7 @@ import Html.Events exposing (onClick)
 import Time
 
 
+
 ---- MODEL ----
 
 
@@ -49,12 +50,13 @@ toList listGrid =
 
 blinker : Grid
 blinker =
-    toArray [ [ o, o, o, o, o ]
-    , [ o, o, o, o, o ]
-    , [ o, x, x, x, o ]
-    , [ o, o, o, o, o ]
-    , [ o, o, o, o, o ]
-    ]
+    toArray
+        [ [ o, o, o, o, o ]
+        , [ o, o, o, o, o ]
+        , [ o, x, x, x, o ]
+        , [ o, o, o, o, o ]
+        , [ o, o, o, o, o ]
+        ]
 
 
 init : ( Model, Cmd Msg )
@@ -104,31 +106,36 @@ getCell grid rowIndex columnIndex =
             value
 
 
-iterateCell : Grid -> Int -> (Int, Bool) -> Bool
-iterateCell grid rowIndex (columnIndex, alive) =
+iterateCell : Grid -> Int -> ( Int, Bool ) -> Bool
+iterateCell grid rowIndex ( columnIndex, alive ) =
     let
-        getCellInGrid = getCell grid
+        getCellInGrid =
+            getCell grid
+
         livingNeighbours =
             [ getCellInGrid (rowIndex - 1) (columnIndex - 1)
-            , getCellInGrid (rowIndex - 1) (columnIndex)
+            , getCellInGrid (rowIndex - 1) columnIndex
             , getCellInGrid (rowIndex - 1) (columnIndex + 1)
-            , getCellInGrid (rowIndex) (columnIndex - 1)
-            , getCellInGrid (rowIndex) (columnIndex + 1)
+            , getCellInGrid rowIndex (columnIndex - 1)
+            , getCellInGrid rowIndex (columnIndex + 1)
             , getCellInGrid (rowIndex + 1) (columnIndex - 1)
-            , getCellInGrid (rowIndex + 1) (columnIndex)
+            , getCellInGrid (rowIndex + 1) columnIndex
             , getCellInGrid (rowIndex + 1) (columnIndex + 1)
             ]
-            |> List.filter identity
-        numberOfLivingNeighbours = List.length livingNeighbours
+                |> List.filter identity
+
+        numberOfLivingNeighbours =
+            List.length livingNeighbours
     in
     if alive then
         numberOfLivingNeighbours == 2 || numberOfLivingNeighbours == 3
+
     else
         numberOfLivingNeighbours == 3
 
 
-iterateRow : Grid -> (Int, Row) -> Row
-iterateRow grid (rowIndex, row) =
+iterateRow : Grid -> ( Int, Row ) -> Row
+iterateRow grid ( rowIndex, row ) =
     row
         |> Array.toIndexedList
         |> List.map (iterateCell grid rowIndex)
@@ -148,9 +155,10 @@ update msg model =
     case msg of
         Tick _ ->
             ( { grid = iterate model.grid
-            , running = True
-            }
-            , Cmd.none )
+              , running = True
+              }
+            , Cmd.none
+            )
 
 
 
@@ -180,7 +188,8 @@ htmlRow row =
 view : Model -> Html Msg
 view model =
     let
-        listGrid = toList model.grid
+        listGrid =
+            toList model.grid
     in
     div [ class "app" ]
         [ table [] (listGrid |> List.map htmlRow)
