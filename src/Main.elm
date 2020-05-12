@@ -72,6 +72,32 @@ toad =
         ]
 
 
+gosperGliderGun : Grid
+gosperGliderGun =
+    toArray
+        [ [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, x, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, x, o, x, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, x, x, o, o, o, o, o, o, x, x, o, o, o, o, o, o, o, o, o, o, o, o, x, x, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, x, o, o, o, x, o, o, o, o, x, x, o, o, o, o, o, o, o, o, o, o, o, o, x, x, o ]
+        , [ o, x, x, o, o, o, o, o, o, o, o, x, o, o, o, o, o, x, o, o, o, x, x, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, x, x, o, o, o, o, o, o, o, o, x, o, o, o, x, o, x, x, o, o, o, o, x, o, x, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, x, o, o, o, o, o, x, o, o, o, o, o, o, o, x, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, x, o, o, o, x, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, x, x, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
+        ]
+
+
 init : ( Model, Cmd Msg )
 init =
     ( { grid = blinker
@@ -186,6 +212,7 @@ setGame game =
     case game of
         "Blinker" -> blinker
         "Toad" -> toad
+        "GosperGliderGun" -> gosperGliderGun
         _ -> blinker
 
 
@@ -217,6 +244,7 @@ options : List (Html msg)
 options =
     [ option [ value "Blinker" ] [ text "Blinker" ]
     , option [ value "Toad" ] [ text "Toad" ]
+    , option [ value "GosperGliderGun" ] [ text "Gosper glider gun" ]
     ]
 
 
