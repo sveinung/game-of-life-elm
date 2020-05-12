@@ -2,10 +2,11 @@ module Main exposing (..)
 
 import Array exposing (Array)
 import Browser
-import Html exposing (Html, button, div, table, td, text, tr)
-import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
+import Html exposing (Html, div, option, select, table, td, text, tr)
+import Html.Attributes exposing (class, value)
+import Html.Events exposing (on, targetValue)
 import Time
+import Json.Decode exposing (Decoder)
 
 
 
@@ -59,6 +60,18 @@ blinker =
         ]
 
 
+toad : Grid
+toad =
+    toArray
+        [ [ o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o ]
+        , [ o, o, x, x, x, o ]
+        , [ o, x, x, x, o, o ]
+        , [ o, o, o, o, o, o ]
+        , [ o, o, o, o, o, o ]
+        ]
+
+
 init : ( Model, Cmd Msg )
 init =
     ( { grid = blinker
@@ -74,6 +87,7 @@ init =
 
 type Msg
     = Tick Time.Posix
+    | SetGame String
 
 
 getRow : Grid -> Int -> Row
@@ -159,6 +173,20 @@ update msg model =
               }
             , Cmd.none
             )
+        SetGame game ->
+            ( { grid = setGame game
+              , running = model.running
+              }
+            , Cmd.none
+            )
+
+
+setGame : String -> Grid
+setGame game =
+    case game of
+        "Blinker" -> blinker
+        "Toad" -> toad
+        _ -> blinker
 
 
 
@@ -185,6 +213,13 @@ htmlRow row =
         (row |> List.map htmlCell)
 
 
+options : List (Html msg)
+options =
+    [ option [ value "Blinker" ] [ text "Blinker" ]
+    , option [ value "Toad" ] [ text "Toad" ]
+    ]
+
+
 view : Model -> Html Msg
 view model =
     let
@@ -192,7 +227,8 @@ view model =
             toList model.grid
     in
     div [ class "app" ]
-        [ table [] (listGrid |> List.map htmlRow)
+        [ select [ on "change" (Json.Decode.map SetGame targetValue) ] options
+        , table [] (listGrid |> List.map htmlRow)
         ]
 
 
