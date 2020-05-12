@@ -2,6 +2,8 @@ module Main exposing (..)
 
 import Array exposing (Array)
 import Browser
+import Dict
+import Game exposing (Grid, Row, defaultGame, games, getGame)
 import Html exposing (Html, div, option, select, table, td, text, tr)
 import Html.Attributes exposing (class, value)
 import Html.Events exposing (on, targetValue)
@@ -9,37 +11,13 @@ import Time
 import Json.Decode exposing (Decoder)
 
 
-
 ---- MODEL ----
-
-
-x =
-    True
-
-
-o =
-    False
-
-
-type alias Row =
-    Array Bool
-
-
-type alias Grid =
-    Array Row
 
 
 type alias Model =
     { grid : Grid
     , running : Bool
     }
-
-
-toArray : List (List Bool) -> Grid
-toArray listGrid =
-    listGrid
-        |> List.map Array.fromList
-        |> Array.fromList
 
 
 toList : Grid -> List (List Bool)
@@ -49,58 +27,9 @@ toList listGrid =
         |> Array.toList
 
 
-blinker : Grid
-blinker =
-    toArray
-        [ [ o, o, o, o, o ]
-        , [ o, o, o, o, o ]
-        , [ o, x, x, x, o ]
-        , [ o, o, o, o, o ]
-        , [ o, o, o, o, o ]
-        ]
-
-
-toad : Grid
-toad =
-    toArray
-        [ [ o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o ]
-        , [ o, o, x, x, x, o ]
-        , [ o, x, x, x, o, o ]
-        , [ o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o ]
-        ]
-
-
-gosperGliderGun : Grid
-gosperGliderGun =
-    toArray
-        [ [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, x, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, x, o, x, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, x, x, o, o, o, o, o, o, x, x, o, o, o, o, o, o, o, o, o, o, o, o, x, x, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, x, o, o, o, x, o, o, o, o, x, x, o, o, o, o, o, o, o, o, o, o, o, o, x, x, o ]
-        , [ o, x, x, o, o, o, o, o, o, o, o, x, o, o, o, o, o, x, o, o, o, x, x, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, x, x, o, o, o, o, o, o, o, o, x, o, o, o, x, o, x, x, o, o, o, o, x, o, x, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, x, o, o, o, o, o, x, o, o, o, o, o, o, o, x, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, x, o, o, o, x, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, x, x, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        , [ o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o, o ]
-        ]
-
-
 init : ( Model, Cmd Msg )
 init =
-    ( { grid = blinker
+    ( { grid = defaultGame
       , running = False
       }
     , Cmd.none
@@ -200,21 +129,11 @@ update msg model =
             , Cmd.none
             )
         SetGame game ->
-            ( { grid = setGame game
+            ( { grid = getGame game
               , running = model.running
               }
             , Cmd.none
             )
-
-
-setGame : String -> Grid
-setGame game =
-    case game of
-        "Blinker" -> blinker
-        "Toad" -> toad
-        "GosperGliderGun" -> gosperGliderGun
-        _ -> blinker
-
 
 
 ---- VIEW ----
@@ -240,12 +159,16 @@ htmlRow row =
         (row |> List.map htmlCell)
 
 
+toOption : (String, Grid) -> Html msg
+toOption (gameName, _) =
+    option [ value gameName ] [ text gameName ]
+
+
 options : List (Html msg)
 options =
-    [ option [ value "Blinker" ] [ text "Blinker" ]
-    , option [ value "Toad" ] [ text "Toad" ]
-    , option [ value "GosperGliderGun" ] [ text "Gosper glider gun" ]
-    ]
+    games
+        |> Dict.toList
+        |> List.map toOption
 
 
 view : Model -> Html Msg
