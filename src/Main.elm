@@ -4,9 +4,9 @@ import Array exposing (Array)
 import Browser
 import Dict
 import Game exposing (Grid, Row, defaultGame, games, getGame)
-import Html exposing (Html, div, option, select, table, td, text, tr)
+import Html exposing (Html, button, div, option, select, table, td, text, tr)
 import Html.Attributes exposing (class, value)
-import Html.Events exposing (on, targetValue)
+import Html.Events exposing (on, onClick, targetValue)
 import Time
 import Json.Decode exposing (Decoder)
 
@@ -42,6 +42,7 @@ init =
 
 type Msg
     = Tick Time.Posix
+    | StartStop
     | SetGame String
 
 
@@ -123,11 +124,12 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick _ ->
-            ( { grid = iterate model.grid
-              , running = True
-              }
+            ( { model | grid = iterate model.grid }
             , Cmd.none
             )
+        StartStop ->
+            ( { model | running = not model.running }
+            , Cmd.none)
         SetGame game ->
             ( { grid = getGame game
               , running = model.running
@@ -137,6 +139,51 @@ update msg model =
 
 
 ---- VIEW ----
+
+
+view : Model -> Html Msg
+view model =
+    let
+        listGrid =
+            toList model.grid
+    in
+    div [ class "app" ]
+        [ controls model
+        , table [] (listGrid |> List.map htmlRow)
+        ]
+
+
+controls : Model -> Html Msg
+controls model =
+    let
+        startStopButtonText =
+            if model.running then
+                "Stop"
+            else
+                "Start"
+    in
+    div []
+        [ select [ on "change" (Json.Decode.map SetGame targetValue) ] options
+        , button [ onClick StartStop ] [ text startStopButtonText ]
+        ]
+
+
+options : List (Html msg)
+options =
+    games
+        |> Dict.toList
+        |> List.map toOption
+
+
+toOption : (String, Grid) -> Html msg
+toOption (gameName, _) =
+    option [ value gameName ] [ text gameName ]
+
+
+htmlRow : List Bool -> Html msg
+htmlRow row =
+    tr []
+        (row |> List.map htmlCell)
 
 
 htmlCell : Bool -> Html msg
@@ -153,44 +200,16 @@ htmlCell alive =
         []
 
 
-htmlRow : List Bool -> Html msg
-htmlRow row =
-    tr []
-        (row |> List.map htmlCell)
-
-
-toOption : (String, Grid) -> Html msg
-toOption (gameName, _) =
-    option [ value gameName ] [ text gameName ]
-
-
-options : List (Html msg)
-options =
-    games
-        |> Dict.toList
-        |> List.map toOption
-
-
-view : Model -> Html Msg
-view model =
-    let
-        listGrid =
-            toList model.grid
-    in
-    div [ class "app" ]
-        [ select [ on "change" (Json.Decode.map SetGame targetValue) ] options
-        , table [] (listGrid |> List.map htmlRow)
-        ]
-
-
 
 -- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every 200 Tick
-
+    if model.running then
+        Time.every 200 Tick
+    else
+        Sub.none
 
 
 ---- PROGRAM ----
