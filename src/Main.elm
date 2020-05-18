@@ -11,29 +11,17 @@ import Time
 import Json.Decode exposing (Decoder)
 
 
----- MODEL ----
+---- PROGRAM ----
 
 
-type alias Model =
-    { grid : Grid
-    , running : Bool
-    }
-
-
-toList : Grid -> List (List Bool)
-toList listGrid =
-    listGrid
-        |> Array.map Array.toList
-        |> Array.toList
-
-
-init : ( Model, Cmd Msg )
-init =
-    ( { grid = defaultGame
-      , running = False
-      }
-    , Cmd.none
-    )
+main : Program () Model Msg
+main =
+    Browser.element
+        { view = view
+        , init = \_ -> init
+        , update = update
+        , subscriptions = subscriptions
+        }
 
 
 
@@ -46,34 +34,38 @@ type Msg
     | SetGame String
 
 
-getRow : Grid -> Int -> Row
-getRow grid rowIndex =
-    let
-        cellRow =
-            grid
-                |> Array.get rowIndex
-    in
-    case cellRow of
-        Nothing ->
-            Array.empty
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        Tick _ ->
+            ( { model | grid = iterate model.grid }
+            , Cmd.none
+            )
+        StartStop ->
+            ( { model | running = not model.running }
+            , Cmd.none)
+        SetGame game ->
+            ( { grid = getGame game
+              , running = model.running
+              }
+            , Cmd.none
+            )
 
-        Just value ->
-            value
+
+iterate : Grid -> Grid
+iterate grid =
+    grid
+        |> Array.toIndexedList
+        |> List.map (iterateRow grid)
+        |> Array.fromList
 
 
-getCell : Grid -> Int -> Int -> Bool
-getCell grid rowIndex columnIndex =
-    let
-        cell =
-            getRow grid rowIndex
-                |> Array.get columnIndex
-    in
-    case cell of
-        Nothing ->
-            False
-
-        Just value ->
-            value
+iterateRow : Grid -> ( Int, Row ) -> Row
+iterateRow grid ( rowIndex, row ) =
+    row
+        |> Array.toIndexedList
+        |> List.map (iterateCell grid rowIndex)
+        |> Array.fromList
 
 
 iterateCell : Grid -> Int -> ( Int, Bool ) -> Bool
@@ -104,38 +96,61 @@ iterateCell grid rowIndex ( columnIndex, alive ) =
         numberOfLivingNeighbours == 3
 
 
-iterateRow : Grid -> ( Int, Row ) -> Row
-iterateRow grid ( rowIndex, row ) =
-    row
-        |> Array.toIndexedList
-        |> List.map (iterateCell grid rowIndex)
-        |> Array.fromList
+getCell : Grid -> Int -> Int -> Bool
+getCell grid rowIndex columnIndex =
+    let
+        cell =
+            getRow grid rowIndex
+                |> Array.get columnIndex
+    in
+    case cell of
+        Nothing ->
+            False
+
+        Just value ->
+            value
 
 
-iterate : Grid -> Grid
-iterate grid =
-    grid
-        |> Array.toIndexedList
-        |> List.map (iterateRow grid)
-        |> Array.fromList
+getRow : Grid -> Int -> Row
+getRow grid rowIndex =
+    let
+        cellRow =
+            grid
+                |> Array.get rowIndex
+    in
+    case cellRow of
+        Nothing ->
+            Array.empty
+
+        Just value ->
+            value
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        Tick _ ->
-            ( { model | grid = iterate model.grid }
-            , Cmd.none
-            )
-        StartStop ->
-            ( { model | running = not model.running }
-            , Cmd.none)
-        SetGame game ->
-            ( { grid = getGame game
-              , running = model.running
-              }
-            , Cmd.none
-            )
+
+---- MODEL ----
+
+
+type alias Model =
+    { grid : Grid
+    , running : Bool
+    }
+
+
+toList : Grid -> List (List Bool)
+toList listGrid =
+    listGrid
+        |> Array.map Array.toList
+        |> Array.toList
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( { grid = defaultGame
+      , running = False
+      }
+    , Cmd.none
+    )
+
 
 
 ---- VIEW ----
@@ -211,15 +226,3 @@ subscriptions model =
     else
         Sub.none
 
-
----- PROGRAM ----
-
-
-main : Program () Model Msg
-main =
-    Browser.element
-        { view = view
-        , init = \_ -> init
-        , update = update
-        , subscriptions = subscriptions
-        }
