@@ -32,6 +32,7 @@ type Msg
     = Tick Time.Posix
     | StartStop
     | SetGame String
+    | ToggleCell (Int, Int, Bool)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -50,6 +51,22 @@ update msg model =
               }
             , Cmd.none
             )
+        ToggleCell (rowIndex, columnIndex, alive) ->
+            ( { model | grid = updateCell model.grid rowIndex columnIndex alive }
+            , Cmd.none
+            )
+
+
+updateCell : Grid -> Int -> Int -> Bool -> Grid
+updateCell grid rowIndex columnIndex alive =
+    let
+        row = Array.get rowIndex grid
+        newColumn =
+            case row of
+                Nothing -> Array.empty
+                Just r -> Array.set columnIndex alive r
+    in
+    Array.set rowIndex newColumn grid
 
 
 iterate : Grid -> Grid
@@ -136,13 +153,6 @@ type alias Model =
     }
 
 
-toList : Grid -> List (List Bool)
-toList listGrid =
-    listGrid
-        |> Array.map Array.toList
-        |> Array.toList
-
-
 init : ( Model, Cmd Msg )
 init =
     ( { grid = defaultGame
@@ -158,13 +168,9 @@ init =
 
 view : Model -> Html Msg
 view model =
-    let
-        listGrid =
-            toList model.grid
-    in
     div [ class "app" ]
         [ controls model
-        , table [] (listGrid |> List.map htmlRow)
+        , htmlGrid model.grid
         ]
 
 
@@ -195,14 +201,30 @@ toOption (gameName, _) =
     option [ value gameName ] [ text gameName ]
 
 
-htmlRow : List Bool -> Html msg
-htmlRow row =
-    tr []
-        (row |> List.map htmlCell)
+htmlGrid : Grid -> Html Msg
+htmlGrid grid =
+    let
+        rows =
+            grid
+                |> Array.toIndexedList
+                |> List.map htmlRow
+    in
+    table [] rows
 
 
-htmlCell : Bool -> Html msg
-htmlCell alive =
+htmlRow : (Int, Row) -> Html Msg
+htmlRow (rowIndex, row) =
+    let
+        cells =
+            row
+                |> Array.toIndexedList
+                |> List.map (htmlCell rowIndex)
+    in
+    tr [] cells
+
+
+htmlCell : Int -> (Int, Bool) -> Html Msg
+htmlCell rowIndex (columnIndex, alive) =
     td
         [ class
             (if alive then
@@ -211,6 +233,7 @@ htmlCell alive =
              else
                 "cell"
             )
+        , onClick (ToggleCell (rowIndex, columnIndex, not alive))
         ]
         []
 
