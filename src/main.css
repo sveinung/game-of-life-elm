@@ -22,6 +22,12 @@ img {
   margin: 30px;
 }
 
+.grid-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
 table {
   border-spacing: 0;
 }

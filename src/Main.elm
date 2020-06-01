@@ -170,7 +170,9 @@ view : Model -> Html Msg
 view model =
     div [ class "app" ]
         [ controls model
-        , htmlGrid model.grid
+        , div [ class "grid-container" ]
+        [ htmlGrid model.grid
+        ]
         ]
 
 
