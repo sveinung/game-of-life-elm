@@ -4,11 +4,12 @@ import Array exposing (Array)
 import Browser
 import Dict
 import Game exposing (Grid, Row, defaultGame, games, getGame)
-import Html exposing (Html, button, div, option, select, table, td, text, tr)
+import Html exposing (Html, button, div, option, select, span, table, td, text, tr)
 import Html.Attributes exposing (class, value)
 import Html.Events exposing (on, onClick, targetValue)
-import Time
 import Json.Decode exposing (Decoder)
+import Time
+
 
 
 ---- PROGRAM ----
@@ -32,7 +33,9 @@ type Msg
     = Tick Time.Posix
     | StartStop
     | SetGame String
-    | ToggleCell (Int, Int, Bool)
+    | ToggleCell ( Int, Int, Bool )
+    | IncreaseSpeed
+    | DecreaseSpeed
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -42,17 +45,29 @@ update msg model =
             ( { model | grid = iterate model.grid }
             , Cmd.none
             )
+
         StartStop ->
             ( { model | running = not model.running }
-            , Cmd.none)
-        SetGame game ->
-            ( { grid = getGame game
-              , running = model.running
-              }
             , Cmd.none
             )
-        ToggleCell (rowIndex, columnIndex, alive) ->
+
+        SetGame game ->
+            ( { model | grid = getGame game }
+            , Cmd.none
+            )
+
+        ToggleCell ( rowIndex, columnIndex, alive ) ->
             ( { model | grid = updateCell model.grid rowIndex columnIndex alive }
+            , Cmd.none
+            )
+
+        IncreaseSpeed ->
+            ( { model | ticksPerSecond = model.ticksPerSecond + 1 }
+            , Cmd.none
+            )
+
+        DecreaseSpeed ->
+            ( { model | ticksPerSecond = model.ticksPerSecond - 1 }
             , Cmd.none
             )
 
@@ -60,11 +75,16 @@ update msg model =
 updateCell : Grid -> Int -> Int -> Bool -> Grid
 updateCell grid rowIndex columnIndex alive =
     let
-        row = Array.get rowIndex grid
+        row =
+            Array.get rowIndex grid
+
         newColumn =
             case row of
-                Nothing -> Array.empty
-                Just r -> Array.set columnIndex alive r
+                Nothing ->
+                    Array.empty
+
+                Just r ->
+                    Array.set columnIndex alive r
     in
     Array.set rowIndex newColumn grid
 
@@ -150,6 +170,7 @@ getRow grid rowIndex =
 type alias Model =
     { grid : Grid
     , running : Bool
+    , ticksPerSecond : Int
     }
 
 
@@ -157,6 +178,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { grid = defaultGame
       , running = False
+      , ticksPerSecond = 5
       }
     , Cmd.none
     )
@@ -171,8 +193,8 @@ view model =
     div [ class "app" ]
         [ controls model
         , div [ class "grid-container" ]
-        [ htmlGrid model.grid
-        ]
+            [ htmlGrid model.grid
+            ]
         ]
 
 
@@ -182,12 +204,16 @@ controls model =
         startStopButtonText =
             if model.running then
                 "Stop"
+
             else
                 "Start"
     in
     div []
         [ select [ on "change" (Json.Decode.map SetGame targetValue) ] options
         , button [ onClick StartStop ] [ text startStopButtonText ]
+        , button [ onClick DecreaseSpeed ] [ text "Decrease speed" ]
+        , span [] [ text ("Ticks per second " ++ String.fromInt model.ticksPerSecond) ]
+        , button [ onClick IncreaseSpeed ] [ text "Increase speed" ]
         ]
 
 
@@ -198,8 +224,8 @@ options =
         |> List.map toOption
 
 
-toOption : (String, Grid) -> Html msg
-toOption (gameName, _) =
+toOption : ( String, Grid ) -> Html msg
+toOption ( gameName, _ ) =
     option [ value gameName ] [ text gameName ]
 
 
@@ -214,8 +240,8 @@ htmlGrid grid =
     table [] rows
 
 
-htmlRow : (Int, Row) -> Html Msg
-htmlRow (rowIndex, row) =
+htmlRow : ( Int, Row ) -> Html Msg
+htmlRow ( rowIndex, row ) =
     let
         cells =
             row
@@ -225,8 +251,8 @@ htmlRow (rowIndex, row) =
     tr [] cells
 
 
-htmlCell : Int -> (Int, Bool) -> Html Msg
-htmlCell rowIndex (columnIndex, alive) =
+htmlCell : Int -> ( Int, Bool ) -> Html Msg
+htmlCell rowIndex ( columnIndex, alive ) =
     td
         [ class
             (if alive then
@@ -235,7 +261,7 @@ htmlCell rowIndex (columnIndex, alive) =
              else
                 "cell"
             )
-        , onClick (ToggleCell (rowIndex, columnIndex, not alive))
+        , onClick (ToggleCell ( rowIndex, columnIndex, not alive ))
         ]
         []
 
@@ -247,7 +273,7 @@ htmlCell rowIndex (columnIndex, alive) =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     if model.running then
-        Time.every 200 Tick
+        Time.every (1000 / toFloat model.ticksPerSecond) Tick
+
     else
         Sub.none
-
